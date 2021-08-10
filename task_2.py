@@ -1,8 +1,5 @@
 import requests
-from pprint import pprint
-
-token = 'AQAAAABObNioAADLW6YcfbMcdkX3riuShOu7u9M'
-base_url = 'https://cloud-api.yandex.net:443/'
+import os
 
 class YaUploader:
     def __init__(self, token: str):
@@ -10,28 +7,24 @@ class YaUploader:
 
     def upload(self, file_path: str):
         """Метод загружает файлы по списку file_list на яндекс диск"""
+        base_url = 'https://cloud-api.yandex.net:443/'
+        file_list = os.listdir(os.path.join(os.getcwd(), file_path))
 
+        headers = {
+            'accept': 'application/json',
+            'authorization': f'OAuth {self.token}'
+        }
 
-
-headers = {
-    'accept': 'application/json',
-    'authorization': f'OAuth {token}'
-}
-
-# response = requests.get(f'{base_url}v1/disk', headers=headers) получение параметров я.диска пользователя
-
-#===(запрос на получение ссылки для загрузки файла)==
-response = requests.get(f'{base_url}v1/disk/resources/upload', params={'path': 'data-science.jpg', 'overwrite': 'true'}, headers=headers)
-print(response.json())
-
-#===(загрузка файла c ПК на я.диск)==
-upload_url = response.json()['href']
-response = requests.put(upload_url, files={'file': open('data\data-science.jpg', 'rb')})
-
+        for file in file_list:
+            #===(запрос на получение ссылки для загрузки файла)==
+            response = requests.get(f'{base_url}v1/disk/resources/upload', params={'path': file, 'overwrite': 'true'}, headers=headers)
+            #===(загрузка файла c ПК на я.диск)==
+            upload_url = response.json()['href']
+            response = requests.put(upload_url, files={'file': open(f'{file_path}/{file}', 'rb')})
 
 if __name__ == '__main__':
     # Получить путь к загружаемому файлу и токен от пользователя
-    path_to_file = ...
-    token = ...
+    path_to_file = input('Введите путь к загружаемому файлу: ')
+    token = input('Введите токен: ')
     uploader = YaUploader(token)
     result = uploader.upload(path_to_file)
